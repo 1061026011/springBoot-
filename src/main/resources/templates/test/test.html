@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>接口信息</title>
+    <link type="text/css" href="../static/css/bootstrap.min.css" rel="stylesheet">
+    <link type="text/css" href="../static/css/bootstrap-table.min.css" rel="stylesheet">
+    <script src="../static/js/public.js"></script>
+    <script src="../static/js/jquery.min.js"></script>
+    <script src="../static/js/bootstrap.min.js"></script>
+    <script src="../static/js/bootstrap-table.min.js"></script>
+    <!--汉化文件，放在 bootstrap-table.js 后面-->
+    <script src="../static/js/bootstrap-table-zh-CN.min.js"></script>
+</head>
+<body>
+<input type="button" value="新增" onclick="add()">
+<input type="button" value="修改" onclick="update()">
+
+<table class="bttable" id="bttable"></table>
+<!-- 模态框（Modal） -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                    &times;
+                </button>
+                <h4 class="modal-title" id="myModalLabel">
+                    接口信息
+                </h4>
+            </div>
+            <div class="modal-body">
+                <form id="form1">
+                    接口路径：<input type="text" id="URL" name="URL"><br>
+                    方法类型：<select id="FFLX" name="FFLX">
+                    <option value="updates">更新数据</option>
+                    <option value="querys">查询数据</option>
+                    <option value="import">导入数据</option>
+                    <option value="export">导出数据</option>
+                    <option value="upload">文件上传</option>
+                </select><br>
+                    方法描述：<textarea id="FFMS" name="FFMS"></textarea><br>
+                    <input type="hidden" id="ID" name="ID" readonly>
+
+                </form>
+                <!--子表信息-->
+				<div style="width:100%;text-align: right;">
+					<input type="button" onclick="add1()" value="新增">
+					<input type="button" onclick="update1()" value="修改">
+				</div>
+               
+                <table class="bttable" id="bttable1"></table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="saveOrUpdate()">
+                    提交更改
+                </button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+
+
+<div class="modal fade" id="myModa2" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                    &times;
+                </button>
+                <h4 class="modal-title" id="myModalLabe2">
+                    sql信息
+                </h4>
+            </div>
+            <div class="modal-body">
+                <form id="form2">
+                    sql类型：<select id="SQLTYPE" name="SQLTYPE">
+                    <option value="select" selected>select</option>
+                    <option value="oneResult">oneResult</option>
+                    <option value="total">total</option>
+                    <option value="procedure">procedure</option>
+                    <option value="insert">insert</option>
+                    <option value="delete">delete</option>
+                    <option value="update">update</option>
+                    
+                </select><br>
+                    sql内容：<textarea id="SQLCONTENT" name="SQLCONTENT" cols="80" rows="10"></textarea><br>
+                    <input type="hidden" id="id1" name="id1">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="saveOrUpdate1()">
+                    提交更改
+                </button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+</body>
+<script>
+    $(function () {
+        initData();
+        initData1(0);
+    })
+    function initData () {
+        var url = URL+'/oracle/getGnList';
+        // 生成table
+        $('#bttable').bootstrapTable({
+            method : 'get', // 请求方式
+            url : url, // 请求后台的URL
+            cache : false, // 是否使用缓存，默认为true
+            contentType : "application/x-www-form-urlencoded; charset=UTF-8",
+            striped : true, // 是否显示行间隔色
+            sortable : true,
+            searchAlign:'right',
+            customSearch:function customSearch() {
+                $('#select').bootstrapTable('refresh');
+            },
+            toolbar:'#select',
+            toolbarAlign:'right',
+
+            onClickCell : function(field, value, row, $element) {
+            },
+            search : true,
+            queryParams : function queryParams(e) {
+                var param = {
+                    start : e.offset+1, // 每页第一条数
+                    end : e.offset+e.limit,
+                    URL :$(".form-control").val()
+                };
+                return param;
+            },
+            pagination : true, // 是否显示分页
+            pageList : [ 10, 15, 20 ], // 可供选择的每页行数
+            pageSize : 10, // 每页的记录行数
+            pageNumber : 1, // 初始化加载第一页，默认第一页
+            sidePagination : 'server',// 设置为服务器端分页
+            paginationLoop : false,// 禁止分页循环
+
+            clickToSelect : true,
+            columns : [ {
+                checkbox : true,
+                width : '5',
+                align : 'center',
+                valign : 'middle'
+            }, {
+                field : 'URL',
+                title : '接口路径',
+                width : '20',
+                align : 'center',
+                valign : 'middle'
+
+            },{
+                field : 'FFLX',
+                title : '接口类型',
+                width : '20',
+                align : 'center',
+                valign : 'middle',
+                formatter:function (value,row,index) {
+                    if(value=="querys"){
+                        value="查询数据";
+                    }else if(value=="updates"){
+                        value="更新数据";
+                    }else if(value=="import"){
+                        value="导入数据";
+                    }else if(value=="export"){
+                        value="导出数据";
+                    }else if(value=="upload"){
+                        value="文件上传";
+                    }
+                    return value;
+                }
+
+            },{
+                field : 'FFMS',
+                title : '接口描述',
+                width : '20',
+                align : 'center',
+                valign : 'middle'
+
+            }]
+        });
+    };
+    function initData1 (gnid) {
+        var url = URL+'/oracle/getSqlList';
+        // 生成table
+        $('#bttable1').bootstrapTable({
+            method : 'get', // 请求方式
+            url : url, // 请求后台的URL
+            cache : false, // 是否使用缓存，默认为true
+            contentType : "application/x-www-form-urlencoded; charset=UTF-8",
+            striped : true, // 是否显示行间隔色
+            sortable : true,
+            searchAlign:'right',
+            onClickCell : function(field, value, row, td) {
+                var id = row.id;
+            },
+            queryParams : function queryParams(e) {
+                var param = {
+                    start : e.offset+1, // 每页第一条数
+                    end : e.offset+e.limit,
+                    GNID:gnid
+                };
+                return param;
+            },
+            pagination : true, // 是否显示分页
+            pageList : [ 10, 15, 20 ], // 可供选择的每页行数
+            pageSize : 10, // 每页的记录行数
+            pageNumber : 1, // 初始化加载第一页，默认第一页
+            sidePagination : 'server',// 设置为服务器端分页
+            paginationLoop : false,// 禁止分页循环
+
+            clickToSelect : true,
+            columns : [ {
+                checkbox : true
+            }, {
+                field : 'SQLTYPE',
+                title : 'sql类型',
+                width : '10',
+                align : 'center',
+                valign : 'middle'
+
+            },{
+                field : 'SQLCONTENT',
+                title : '内容',
+                width : '200',
+                align : 'center',
+                valign : 'middle',
+                formatter:function (value,row,index) {
+                    if(value.length>100){
+                        value = value.substring(0,100)+"……";
+                    }
+                    return value;
+                }
+            }]
+        });
+    };
+    function add() {
+        $("#form1 input").val("");
+        $("#form1 textarea").val("");
+       /* $("#bttable1").bootstrapTable("destroy");
+        initData1(0);*/
+        $("#bttable1").bootstrapTable("refresh",{query :{start:0,GNID:0}});
+        $("#myModal").modal("show");
+    }
+    function add1() {
+        var id = $("#ID").val();
+        if(id==""){
+            alert("请先保存主表信息");
+            return;
+        }
+        $("#form2 input").val("");
+        $("#form2 textarea").val("");
+        $("#myModa2").modal("show");
+    }
+
+    function update() {
+        var bt=$('#bttable').bootstrapTable("getSelections");
+        if(bt.length!=1){
+           alert("请选择一条数据进行编辑！");
+        }else{
+           $("#myModal").modal("show");
+            $(".list").hide();
+            var data = bt[0];
+            for(var i in data){
+                $("#"+i).val(data[i]);
+            }
+           /* $("#bttable1").bootstrapTable("destroy");
+            initData1(data.ID);*/
+            $("#bttable1").bootstrapTable("refresh",{query :{start:0,GNID:data.ID}});
+        }
+    }
+    function update1() {
+        var bt=$('#bttable1').bootstrapTable("getSelections");
+        if(bt.length!=1){
+            alert("请选择一条数据进行编辑！");
+        }else{
+            $("#myModa2").modal("show");
+            var data = bt[0];
+            for(var i in data){
+                if(i!="ID"){
+                    $("#"+i).val(data[i]);
+                }
+            }
+            $("#id1").val(data.ID);
+        }
+    }
+    function saveOrUpdate() {
+        var thisdata = $("#form1").serialize();
+        var id = $("#ID").val();
+        var url = URL+"/oracle/addGn";
+        if(id != ""){
+            url = URL+"/oracle/updateGn";
+        }
+        $.ajax({
+            type:"post",
+            url:url,
+            data:thisdata,
+            dataType:"json",
+            success:function (res) {
+                if(res.code==200){
+                    if(id==""){
+                        $("#ID").val(res.data);
+                    }else{
+                        $("#myModal").modal("hide");
+                    }
+                    $("#bttable").bootstrapTable("refresh");
+                    alert("保存成功！");
+                }else{
+                    alert("保存失败！");
+                }
+
+            },
+            error:function (res) {
+                alert("系统异常！")
+            }
+        })
+    }
+    function saveOrUpdate1() {
+        var thisdata = $("#form2").serialize();
+        var id = $("#id1").val();
+        var gnid = $("#ID").val();
+        var url = URL+"/oracle/addSql";
+        if(id != ""){
+
+            thisdata+="&ID="+id;
+            url = URL+"/oracle/updateSql";
+        }else{
+            thisdata+="&GNID="+gnid;
+        }
+        $.ajax({
+            type:"post",
+            url:url,
+            data:thisdata,
+            dataType:"json",
+            success:function (res) {
+                if(res.code==200){
+                    $("#myModa2").modal("hide");
+                    $("#bttable1").bootstrapTable("refresh",{query :{start:0,GNID:gnid}});
+
+                    alert("保存成功！");
+                }else{
+                    alert("保存失败！");
+                }
+
+            },
+            error:function (res) {
+                alert("系统异常！")
+            }
+        })
+    }
+</script>
+</html>

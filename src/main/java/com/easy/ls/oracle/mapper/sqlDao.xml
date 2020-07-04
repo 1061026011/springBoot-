@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.easy.ls.oracle.dao.SqlDao">
+	<resultMap id="map" type="java.util.Map"></resultMap>
+	<!--***********从数据库中获取sql**************-->
+	<insert id="insert" parameterType="map">
+		${SQLCONTENT}
+	</insert>
+	<delete id="delete" parameterType="map">
+		${SQLCONTENT}
+	</delete>
+	<update id="update" parameterType="map">
+		${SQLCONTENT}
+	</update>
+	<select id="select" parameterType="map" resultType="map">
+		${SQLCONTENT}
+	</select>
+	<select id="oneResult" parameterType="map" resultType="java.lang.Object">
+		${SQLCONTENT}
+	</select>
+	<select id="procedure" parameterType="map" statementType="CALLABLE">
+		${SQLCONTENT}
+	</select>
+	<!--***********本地sql**************-->
+	<select id="getMaxGnId" resultType="java.lang.Integer">
+		select max(id) from boot_gn
+	</select>
+	<select id="getGnList" parameterType="map" resultType="map">
+		select * from(
+		select rownum rn,t.* from
+		(select * from boot_gn
+		<where>
+			<include refid="gnwhere"></include>
+		</where> order by id asc)t )tt
+		<if test="start !=null and start !='' and end != null and end !=''">
+			where rn between #{start} and #{end}
+		</if>
+	</select>
+	<select id="getGnCount" parameterType="map" resultType="java.lang.Integer">
+		select count(1) from boot_gn
+		<where>
+			<include refid="gnwhere"></include>
+		</where>
+	</select>
+	<select id="getSqlList" parameterType="map" resultType="map">
+		select * from(
+		select rownum rn,t.* from
+		(select * from boot_sql
+		<where>
+			<include refid="sqlwhere"></include>
+		</where> order by id asc)t )tt
+		<if test="start !=null and start !='' and end != null and end !=''">
+			where rn between #{start} and #{end}
+		</if>
+
+	</select>
+	<select id="getSqlCount" parameterType="map" resultType="java.lang.Integer">
+		select count(1) from boot_sql
+		<where>
+			<include refid="sqlwhere"></include>
+		</where>
+	</select>
+	<insert id="addGn" parameterType="map">
+		INSERT INTO BOOT_GN(ID,URL,FFMS,FFLX) VALUES(#{ID},#{URL},#{FFMS},#{FFLX})
+	</insert>
+	<insert id="addSql" parameterType="map">
+		INSERT INTO BOOT_SQL(ID,SQLCONTENT,SQLTYPE,GNID) VALUES(#{ID},#{SQLCONTENT},#{SQLTYPE},#{GNID})
+	</insert>
+	<update id="updateGn" parameterType="map">
+		UPDATE BOOT_GN
+		<set>
+			<if test="URL != null and URL != ''">
+				URL = #{URL},
+			</if>
+			<if test="FFMS != null and FFMS != ''">
+				FFMS = #{FFMS},
+			</if>
+			<if test="FFLX != null and FFLX != ''">
+				FFLX = #{FFLX},
+			</if>
+		</set>
+		where ID = #{ID}
+	</update>
+	<update id="updateSql" parameterType="map">
+		UPDATE BOOT_SQL
+		<set>
+			<if test="SQLCONTENT != null and SQLCONTENT != ''">
+				SQLCONTENT = #{SQLCONTENT},
+			</if>
+			<if test="SQLTYPE != null and SQLTYPE != ''">
+				SQLTYPE = #{SQLTYPE},
+			</if>
+			<if test="GNID != null and GNID != ''">
+				GNID = #{GNID},
+			</if>
+		</set>
+		where ID = #{ID}
+	</update>
+	<delete id="delGnById" parameterType="map">
+		DELETE FROM BOOT_GN WHERE ID = #{ID}
+	</delete>
+	<delete id="delSqlById" parameterType="map">
+		DELETE FROM BOOT_SQL WHERE ID = #{ID}
+	</delete>
+	<sql id="gnwhere">
+		1=1
+		<if test="URL !=null and URL != ''">
+			AND URL = #{URL}
+		</if>
+		<if test="FFMS !=null and FFMS != ''">
+			AND FFMS LIKE  CONCAT(CONCAT('%',#{FFMS}),'%')
+		</if>
+		<if test="FFLX !=null and FFLX != ''">
+			AND FFLX = #{FFLX}
+		</if>
+		<if test="ID !=null and ID != ''">
+			AND ID = #{ID}
+		</if>
+	</sql>
+	<sql id="sqlwhere">
+		1=1
+		<if test="GNID !=null and GNID != ''">
+			AND GNID=#{GNID}
+		</if>
+		<if test="SQLTYPE !=null and SQLTYPE != ''">
+			AND SQLTYPE=#{SQLTYPE}
+		</if>
+		<if test="ID !=null and ID != ''">
+			AND ID = #{ID}
+		</if>
+	</sql>
+</mapper>

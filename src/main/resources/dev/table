@@ -1,0 +1,17 @@
+************使用此框架的功能必须建以下两张表************
+
+--功能表信息----------------------1
+create table boot_gn(
+    ID varchar2(100) primary key not null,--主键id
+    URL varchar2(150),--接口路径
+    FFMS varchar2(1000),--方法描述
+    FFLX varchar2(50) --方法类型
+)
+
+--sql表信息-----------------------2
+create table boot_sql(
+    ID varchar2(100) primary key not null,--主键id
+    SQLCONTENT varchar2(4000),--sql脚本
+    SQLTYPE varchar2(30),--sql类型(select,insert,update,oneResult,total,procedure)
+    GNID varchar2(100) --功能id(关联功能表)
+)
